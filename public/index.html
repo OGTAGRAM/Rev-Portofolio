@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern React Portfolio</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    animation: {
+                        'fade-in': 'fadeIn 0.8s ease-in-out',
+                        'slide-up': 'slideUp 0.8s ease-out',
+                        'bounce-arrow': 'bounceArrow 2s infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                        'pulse-glow': 'pulseGlow 2s ease-in-out infinite alternate',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(30px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(50px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        bounceArrow: {
+                            '0%, 20%, 50%, 80%, 100%': { transform: 'translateY(0)' },
+                            '40%': { transform: 'translateY(-10px)' },
+                            '60%': { transform: 'translateY(-5px)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        pulseGlow: {
+                            '0%': { boxShadow: '0 0 20px rgba(59, 130, 246, 0.5)' },
+                            '100%': { boxShadow: '0 0 40px rgba(59, 130, 246, 0.8)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            cursor: pointer;
+        }
+        
+        .parallax-bg {
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+
+        // Navigation Component
+        const Navigation = ({ darkMode, toggleDarkMode }) => {
+            const [isScrolled, setIsScrolled] = useState(false);
+
+            useEffect(() => {
+                const handleScroll = () => {
+                    setIsScrolled(window.scrollY > 50);
+                };
+                window.addEventListener('scroll', handleScroll);
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, []);
+
+            const smoothScrollTo = (elementId) => {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    const offsetTop = element.offsetTop - 80; // Account for fixed navbar
+                    window.scrollTo({
+                        top: offsetTop,
+                        behavior: 'smooth'
+                    });
+                }
+            };
+
+            return (
+                <nav className={`fixed w-full top-0 z-50 transition-all duration-300 ${
+                    isScrolled 
+                        ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-lg' 
+                        : 'bg-transparent'
+                }`}>
+                    <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+                        <div className="flex items-center justify-between h-16">
+                            <div className="flex-shrink-0">
+                                <h1 className="text-2xl font-bold cursor-pointer gradient-text" onClick={() => smoothScrollTo('home')}>Portfolio</h1>
+                            </div>
+                            <div className="items-center hidden space-x-8 md:flex">
+                                <button onClick={() => smoothScrollTo('home')} className="text-gray-700 transition-colors dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">Home</button>
+                                <button onClick={() => smoothScrollTo('about')} className="text-gray-700 transition-colors dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">About</button>
+                                <button onClick={() => smoothScrollTo('skills')} className="text-gray-700 transition-colors dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">Skills</button>
+                                <button onClick={() => smoothScrollTo('tools')} className="text-gray-700 transition-colors dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">Tools</button>
+                                <button onClick={() => smoothScrollTo('projects')} className="text-gray-700 transition-colors dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">Projects</button>
+                                <button onClick={() => smoothScrollTo('contact')} className="px-6 py-2 text-white transition-colors bg-blue-600 rounded-full hover:bg-blue-700">Contact</button>
+                                <button 
+                                    onClick={toggleDarkMode}
+                                    className="p-2 text-gray-600 transition-colors bg-gray-100 rounded-full dark:bg-gray-800 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                >
+                                    {darkMode ? (
+                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd"></path>
+                                        </svg>
+                                    ) : (
+                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                                        </svg>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+            );
+        };
+
+        // Hero Section Component
+        const HeroSection = () => {
+            const scrollToNext = () => {
+                document.getElementById('about').scrollIntoView({ behavior: 'smooth' });
+            };
+
+            return (
+                <section id="home" className="relative flex items-center justify-center min-h-screen overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
+                    {/* Animated Background Elements */}
+                    <div className="absolute inset-0 overflow-hidden">
+                        <div className="absolute bg-blue-300 rounded-full -top-40 -right-40 w-80 h-80 dark:bg-blue-600 mix-blend-multiply filter blur-xl opacity-70 animate-float"></div>
+                        <div className="absolute bg-purple-300 rounded-full -bottom-40 -left-40 w-80 h-80 dark:bg-purple-600 mix-blend-multiply filter blur-xl opacity-70 animate-float" style={{animationDelay: '2s'}}></div>
+                        <div className="absolute bg-pink-300 rounded-full top-40 left-40 w-80 h-80 dark:bg-pink-600 mix-blend-multiply filter blur-xl opacity-70 animate-float" style={{animationDelay: '4s'}}></div>
+                    </div>
+
+                    <div className="relative px-4 mx-auto text-center max-w-7xl sm:px-6 lg:px-8">
+                        <div className="animate-fade-in">
+                            <div className="mb-8">
+                                <span className="inline-block text-6xl animate-float">👋</span>
+                            </div>
+                            <h1 className="mb-6 text-5xl font-bold text-gray-900 md:text-7xl dark:text-white">
+                                Hello, I'm <span className="gradient-text">Your Name</span>
+                            </h1>
+                            <p className="max-w-3xl mx-auto mb-8 text-xl text-gray-600 md:text-2xl dark:text-gray-300">
+                                Full Stack Developer passionate about creating amazing web experiences with modern technologies
+                            </p>
+                            <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+                                <button onClick={() => document.getElementById('projects').scrollIntoView({ behavior: 'smooth', block: 'start' })} className="px-8 py-4 font-semibold text-white transition-all duration-300 transform bg-blue-600 rounded-full hover:bg-blue-700 hover:scale-105 animate-pulse-glow">
+                                    View My Work
+                                </button>
+                                <button onClick={() => document.getElementById('contact').scrollIntoView({ behavior: 'smooth', block: 'start' })} className="px-8 py-4 font-semibold text-blue-600 transition-all duration-300 transform border-2 border-blue-600 rounded-full dark:text-blue-400 hover:bg-blue-600 hover:text-white hover:scale-105">
+                                    Get In Touch
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Scroll Indicator */}
+                    <div className="scroll-indicator" onClick={scrollToNext}>
+                        <div className="flex flex-col items-center text-gray-600 transition-colors dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400">
+                            <span className="mb-2 text-sm animate-pulse">Scroll Down</span>
+                            <svg className="w-6 h-6 animate-bounce-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                            </svg>
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        // Skills Section Component with Slider
+        const SkillsSection = () => {
+            const [currentSlide, setCurrentSlide] = useState(0);
+            const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+            
+            const skills = [
+      { name: 'React', icon: '⚛️', color: 'text-blue-500', description: 'Modern UI Library' },
+      { name: 'Django', icon: '🎯', color: 'text-green-600', description: 'Python Web Framework' },
+      { name: 'Laravel', icon: '🔧', color: 'text-red-500', description: 'PHP Framework' },
+      { name: 'Python', icon: '🐍', color: 'text-yellow-500', description: 'Versatile Programming' },
+      { name: 'PHP', icon: '🐘', color: 'text-purple-500', description: 'Server-side Scripting' },
+      { name: 'Google Cloud', icon: '☁️', color: 'text-blue-400', description: 'Cloud Platform' },
+      { name: 'JavaScript', icon: '📜', color: 'text-yellow-400', description: 'Dynamic Programming' },
+      { name: 'Tailwind', icon: '🎨', color: 'text-cyan-500', description: 'Utility-first CSS' },
+      { name: 'CSS', icon: '🎭', color: 'text-blue-600', description: 'Styling & Design' },
+      { name: 'HTML', icon: '📄', color: 'text-orange-500', description: 'Web Structure' },
+      { name: 'Database Design & Normalization', icon: '📊', color: 'text-teal-500', description: 'Structured data organization' },
+      { name: 'API Development', icon: '🔌', color: 'text-green-500', description: 'RESTful & GraphQL' },
+      { name: 'Backend Development', icon: '⚙️', color: 'text-indigo-500', description: 'Server-side logic' }
+    ];
+
+            const skillsPerSlide = 3;
+            const totalSlides = Math.ceil(skills.length / skillsPerSlide);
+
+            useEffect(() => {
+                if (!isAutoPlaying) return;
+                
+                const interval = setInterval(() => {
+                    setCurrentSlide((prev) => (prev + 1) % totalSlides);
+                }, 4000);
+
+                return () => clearInterval(interval);
+            }, [totalSlides, isAutoPlaying]);
+
+            const nextSlide = () => {
+                setCurrentSlide((prev) => (prev + 1) % totalSlides);
+                setIsAutoPlaying(false);
+            };
+
+            const prevSlide = () => {
+                setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
+                setIsAutoPlaying(false);
+            };
+
+            const goToSlide = (index) => {
+                setCurrentSlide(index);
+                setIsAutoPlaying(false);
+            };
+
+            const getCurrentSkills = () => {
+                const start = currentSlide * skillsPerSlide;
+                return skills.slice(start, start + skillsPerSlide);
+            };
+
+            return (
+                <section id="skills" className="py-20 overflow-hidden bg-white dark:bg-gray-800">
+                    <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+                        <div className="mb-16 text-center animate-fade-in">
+                            <h2 className="mb-4 text-4xl font-bold text-gray-900 dark:text-white">Skills & Technologies</h2>
+                            <p className="text-xl text-gray-600 dark:text-gray-300">Technologies I work with</p>
+                        </div>
+                        
+                        {/* Slider Container */}
+                        <div className="relative max-w-5xl mx-auto">
+                            {/* Navigation Arrows */}
+                            <button 
+                                onClick={prevSlide}
+                                className="absolute left-0 z-10 p-3 transition-all duration-300 -translate-y-1/2 bg-white rounded-full shadow-lg top-1/2 dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 group"
+                            >
+                                <svg className="w-6 h-6 text-gray-600 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                            
+                            <button 
+                                onClick={nextSlide}
+                                className="absolute right-0 z-10 p-3 transition-all duration-300 -translate-y-1/2 bg-white rounded-full shadow-lg top-1/2 dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 group"
+                            >
+                                <svg className="w-6 h-6 text-gray-600 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+
+                            {/* Skills Cards */}
+                            <div className="mx-12">
+                                <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+                                    {getCurrentSkills().map((skill, index) => (
+                                        <div 
+                                            key={`${currentSlide}-${skill.name}`}
+                                            className="p-8 text-center transition-all duration-500 transform border border-gray-200 shadow-xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 rounded-2xl hover:shadow-2xl group hover:scale-105 animate-slide-up dark:border-gray-700"
+                                            style={{animationDelay: `${index * 0.2}s`}}
+                                        >
+                                            <div className={`text-6xl mb-6 ${skill.color} group-hover:scale-110 transition-transform duration-300`}>
+                                                {skill.icon}
+                                            </div>
+                                            <h3 className="mb-2 text-xl font-bold text-gray-900 dark:text-white">{skill.name}</h3>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400">{skill.description}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Slide Indicators */}
+                            <div className="flex justify-center mt-12 space-x-3">
+                                {Array.from({ length: totalSlides }).map((_, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={() => goToSlide(index)}
+                                        className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                                            index === currentSlide 
+                                                ? 'bg-blue-600 w-8' 
+                                                : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
+                                        }`}
+                                    />
+                                ))}
+                            </div>
+
+
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        // Tools Section Component
+        const ToolsSection = () => {
+            const tools = [
+                { 
+                    name: 'Git', 
+                    color: 'text-orange-500',
+                    icon: (
+                        <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M23.546 10.93L13.067.452c-.604-.603-1.582-.603-2.188 0L8.708 2.627l2.76 2.76c.645-.215 1.379-.07 1.889.441.516.515.658 1.258.438 1.9l2.658 2.66c.645-.223 1.387-.078 1.9.435.721.72.721 1.884 0 2.604-.719.719-1.881.719-2.6 0-.539-.541-.674-1.337-.404-1.996L12.86 8.955v6.525c.176.086.342.203.488.348.713.721.713 1.883 0 2.6-.719.721-1.889.721-2.609 0-.719-.719-.719-1.879 0-2.598.182-.18.387-.316.605-.406V8.835c-.217-.091-.424-.222-.6-.401-.545-.545-.676-1.342-.396-2.009L7.636 3.7.45 10.881c-.6.605-.6 1.584 0 2.189l10.48 10.477c.604.604 1.582.604 2.186 0l10.43-10.43c.605-.603.605-1.582 0-2.187"/>
+                        </svg>
+                    )
+                },
+                { 
+                    name: 'VSCode', 
+                    color: 'text-blue-600',
+                    icon: (
+                        <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M23.15 2.587L18.21.21a1.494 1.494 0 0 0-1.705.29l-9.46 8.63-4.12-3.128a.999.999 0 0 0-1.276.057L.327 7.261A1 1 0 0 0 .326 8.74L3.899 12 .326 15.26a1 1 0 0 0 .001 1.479L1.65 17.94a.999.999 0 0 0 1.276.057l4.12-3.128 9.46 8.63a1.492 1.492 0 0 0 1.704.29l4.942-2.377A1.5 1.5 0 0 0 24 20.06V3.939a1.5 1.5 0 0 0-.85-1.352zm-5.146 14.861L10.826 12l7.178-5.448v10.896z"/>
+                        </svg>
+                    )
+                },
+                { 
+                    name: 'Docker', 
+                    color: 'text-blue-500',
+                    icon: (
+                        <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M13.983 11.078h2.119a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.119a.185.185 0 00-.185.185v1.888c0 .102.083.185.185.185m-2.954-5.43h2.118a.186.186 0 00.186-.186V3.574a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m0 2.716h2.118a.187.187 0 00.186-.186V6.29a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.887c0 .102.082.185.185.186m-2.93 0h2.12a.186.186 0 00.184-.186V6.29a.185.185 0 00-.185-.185H8.1a.185.185 0 00-.185.185v1.887c0 .102.083.185.185.186m-2.964 0h2.119a.186.186 0 00.185-.186V6.29a.185.185 0 00-.185-.185H5.136a.186.186 0 00-.186.185v1.887c0 .102.084.185.186.186m5.893 2.715h2.118a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m-2.93 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.083.185.185.185m-2.964 0h2.119a.185.185 0 00.185-.185V9.006a.185.185 0 00-.184-.186H5.136a.186.186 0 00-.186.186v1.887a.186.186 0 00.186.185M23.763 9.89c-.065-.051-.672-.51-1.954-.51-.338.001-.676.03-1.01.087-.248-1.7-1.653-2.53-1.716-2.566l-.344-.199-.226.327c-.284.438-.49.922-.612 1.43-.23.97-.09 1.882.403 2.661-.595.332-1.55.413-1.744.42H.751a.751.751 0 00-.75.748 11.376 11.376 0 00.692 4.062c.545 1.428 1.355 2.48 2.41 3.124 1.18.723 3.1 1.137 5.275 1.137.983.003 1.963-.086 2.93-.266a12.248 12.248 0 003.823-1.389c.98-.567 1.86-1.288 2.61-2.136 1.252-1.418 1.998-2.997 2.553-4.4h.221c1.372 0 2.215-.549 2.68-1.009.309-.293.55-.65.707-1.046l.098-.288Z"/>
+                        </svg>
+                    )
+                },
+                { 
+                    name: 'Node.js', 
+                    color: 'text-green-500',
+                    icon: (
+                        <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M11.998,24c-0.321,0-0.641-0.084-0.922-0.247l-2.936-1.737c-0.438-0.245-0.224-0.332-0.08-0.383 c0.585-0.203,0.703-0.25,1.328-0.604c0.065-0.037,0.151-0.023,0.218,0.017l2.256,1.339c0.082,0.045,0.197,0.045,0.272,0l8.795-5.076 c0.082-0.047,0.134-0.141,0.134-0.238V6.921c0-0.099-0.053-0.192-0.137-0.242l-8.791-5.072c-0.081-0.047-0.189-0.047-0.271,0 L2.46,6.68C2.376,6.729,2.322,6.825,2.322,6.921v10.15c0,0.097,0.054,0.189,0.139,0.235l2.409,1.392 c1.307,0.654,2.108-0.116,2.108-0.89V7.787c0-0.142,0.114-0.253,0.256-0.253h1.115c0.139,0,0.255,0.112,0.255,0.253v10.021 c0,1.745-0.95,2.745-2.604,2.745c-0.508,0-0.909,0-2.026-0.551L2.28,18.675c-0.57-0.329-0.922-0.945-0.922-1.604V6.921 c0-0.659,0.353-1.275,0.922-1.603l8.795-5.082c0.557-0.315,1.296-0.315,1.848,0l8.794,5.082c0.570,0.329,0.924,0.944,0.924,1.603 v10.15c0,0.659-0.354,1.273-0.924,1.604l-8.794,5.078C12.643,23.916,12.324,24,11.998,24z M19.099,13.993 c0-1.9-1.284-2.406-3.987-2.763c-2.731-0.361-3.009-0.548-3.009-1.187c0-0.528,0.235-1.233,2.258-1.233 c1.807,0,2.473,0.389,2.747,1.607c0.024,0.115,0.129,0.199,0.247,0.199h1.141c0.071,0,0.138-0.031,0.186-0.081 c0.048-0.054,0.074-0.123,0.067-0.196c-0.177-2.098-1.571-3.076-4.388-3.076c-2.508,0-4.004,1.058-4.004,2.833 c0,1.925,1.488,2.457,3.895,2.695c2.88,0.282,3.103,0.703,3.103,1.269c0,0.983-0.789,1.402-2.642,1.402 c-2.327,0-2.839-0.584-3.011-1.742c-0.02-0.124-0.126-0.215-0.253-0.215h-1.137c-0.141,0-0.254,0.112-0.254,0.253 c0,1.482,0.806,3.248,4.655,3.248C17.501,17.007,19.099,15.91,19.099,13.993z"/>
+                        </svg>
+                    )
+                },
+                { 
+                    name: 'Figma', 
+                    color: 'text-purple-500',
+                    icon: (
+                        <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M15.332 8.668a3 3 0 0 0 0-4.336 3 3 0 0 0-4.336 0l-1.332 1.332a3 3 0 0 0 0 4.336 3 3 0 0 0 4.336 0l1.332-1.332zM15.332 15.332a3 3 0 0 1 0 4.336 3 3 0 0 1-4.336 0l-1.332-1.332a3 3 0 0 1 0-4.336 3 3 0 0 1 4.336 0l1.332 1.332z"/>
+                            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/>
+                        </svg>
+                    )
+                }
+            ];
+
+            return (
+                <section id="tools" className="py-20 bg-gray-50 dark:bg-gray-900">
+                    <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+                        <div className="mb-16 text-center animate-fade-in">
+                            <h2 className="mb-4 text-4xl font-bold text-gray-900 dark:text-white">Development Tools</h2>
+                            <p className="text-xl text-gray-600 dark:text-gray-300">Tools I use for development</p>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-8 md:grid-cols-3 lg:grid-cols-5">
+                            {tools.map((tool, index) => (
+                                <div 
+                                    key={tool.name}
+                                    className="p-8 text-center transition-all duration-300 transform bg-white shadow-lg dark:bg-gray-800 rounded-xl hover:shadow-xl group hover:scale-105 animate-slide-up"
+                                    style={{animationDelay: `${index * 0.1}s`}}
+                                >
+                                    <div className={`mb-4 ${tool.color} group-hover:scale-110 transition-transform`}>
+                                        {tool.icon}
+                                    </div>
+                                    <h3 className="font-semibold text-gray-900 dark:text-white">{tool.name}</h3>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        // Main App Component
+        const App = () => {
+            const [darkMode, setDarkMode] = useState(false);
+
+            useEffect(() => {
+                const savedTheme = localStorage.getItem('theme');
+                if (savedTheme === 'dark') {
+                    setDarkMode(true);
+                    document.documentElement.classList.add('dark');
+                }
+            }, []);
+
+            const toggleDarkMode = () => {
+                setDarkMode(!darkMode);
+                if (!darkMode) {
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('theme', 'light');
+                }
+            };
+
+            return (
+                <div className="min-h-screen text-gray-900 transition-colors duration-300 bg-white dark:bg-gray-900 dark:text-white">
+                    <Navigation darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+                    <HeroSection />
+                    
+                    {/* About Section */}
+                    <section id="about" className="py-20 bg-white dark:bg-gray-800">
+                        <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+                            <div className="mb-16 text-center animate-fade-in">
+                                <h2 className="mb-4 text-4xl font-bold text-gray-900 dark:text-white">About Me</h2>
+                                <p className="max-w-3xl mx-auto text-xl text-gray-600 dark:text-gray-300">
+                                    I'm a passionate developer with experience in modern web technologies. I love creating efficient, scalable, and user-friendly applications.
+                                </p>
+                            </div>
+                            
+                            <div className="grid items-center gap-12 md:grid-cols-2">
+                                <div className="animate-slide-up">
+                                    <div className="flex items-center justify-center w-64 h-64 mx-auto mb-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 animate-float">
+                                        <span className="text-6xl">👨‍💻</span>
+                                    </div>
+                                </div>
+                                <div className="animate-slide-up">
+                                    <h3 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">My Journey</h3>
+                                    <p className="mb-6 text-gray-600 dark:text-gray-300">
+                                        With several years of experience in web development, I've worked on various projects ranging from small business websites to large-scale applications. I'm always eager to learn new technologies and improve my skills.
+                                    </p>
+                                    <div className="space-y-4">
+                                        <div className="flex items-center">
+                                            <div className="w-4 h-4 mr-3 bg-blue-600 rounded-full"></div>
+                                            <span className="text-gray-700 dark:text-gray-300">Problem-solving mindset</span>
+                                        </div>
+                                        <div className="flex items-center">
+                                            <div className="w-4 h-4 mr-3 bg-blue-600 rounded-full"></div>
+                                            <span className="text-gray-700 dark:text-gray-300">Continuous learning</span>
+                                        </div>
+                                        <div className="flex items-center">
+                                            <div className="w-4 h-4 mr-3 bg-blue-600 rounded-full"></div>
+                                            <span className="text-gray-700 dark:text-gray-300">Team collaboration</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <SkillsSection />
+                    <ToolsSection />
+
+                    {/* Projects Section */}
+                    <section id="projects" className="py-20 bg-white dark:bg-gray-800">
+                        <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+                            <div className="mb-16 text-center animate-fade-in">
+                                <h2 className="mb-4 text-4xl font-bold text-gray-900 dark:text-white">Featured Projects</h2>
+                                <p className="text-xl text-gray-600 dark:text-gray-300">Some of my recent work</p>
+                            </div>
+                            
+                            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                                {[1, 2, 3].map((project, index) => (
+                                    <div 
+                                        key={project}
+                                        className="overflow-hidden transition-all duration-300 transform shadow-lg bg-gray-50 dark:bg-gray-900 rounded-xl hover:shadow-xl hover:scale-105 animate-slide-up"
+                                        style={{animationDelay: `${index * 0.2}s`}}
+                                    >
+                                        <div className="flex items-center justify-center h-48 bg-gradient-to-br from-blue-400 to-purple-500">
+                                            <span className="text-6xl">{['🚀', '💼', '📱'][index]}</span>
+                                        </div>
+                                        <div className="p-6">
+                                            <h3 className="mb-2 text-xl font-bold text-gray-900 dark:text-white">Project {project}</h3>
+                                            <p className="mb-4 text-gray-600 dark:text-gray-300">
+                                                {['A modern web application built with React and Node.js', 'E-commerce platform with advanced features', 'Mobile-first responsive web application'][index]}
+                                            </p>
+                                            <div className="flex space-x-2">
+                                                <span className="px-3 py-1 text-sm text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200">React</span>
+                                                <span className="px-3 py-1 text-sm text-green-800 bg-green-100 rounded-full dark:bg-green-900 dark:text-green-200">Node.js</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Contact Section */}
+                    <section id="contact" className="py-20 bg-gray-50 dark:bg-gray-900">
+                        <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+                            <div className="mb-16 text-center animate-fade-in">
+                                <h2 className="mb-4 text-4xl font-bold text-gray-900 dark:text-white">Get In Touch</h2>
+                                <p className="text-xl text-gray-600 dark:text-gray-300">Let's work together on your next project</p>
+                            </div>
+                            
+                            <div className="max-w-2xl mx-auto">
+                                <form className="space-y-6 animate-slide-up">
+                                    <div className="grid gap-6 md:grid-cols-2">
+                                        <div>
+                                            <label htmlFor="name" className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+                                            <input type="text" id="name" name="name" className="w-full px-4 py-3 text-gray-900 transition-colors bg-white border border-gray-300 rounded-lg dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white" required />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+                                            <input type="email" id="email" name="email" className="w-full px-4 py-3 text-gray-900 transition-colors bg-white border border-gray-300 rounded-lg dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white" required />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="subject" className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Subject</label>
+                                        <input type="text" id="subject" name="subject" className="w-full px-4 py-3 text-gray-900 transition-colors bg-white border border-gray-300 rounded-lg dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white" required />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="message" className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Message</label>
+                                        <textarea id="message" name="message" rows="6" className="w-full px-4 py-3 text-gray-900 transition-colors bg-white border border-gray-300 rounded-lg dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white" required></textarea>
+                                    </div>
+                                    <div className="text-center">
+                                        <button type="submit" className="px-8 py-3 font-semibold text-white transition-all duration-300 transform bg-blue-600 rounded-full hover:bg-blue-700 hover:scale-105">
+                                            Send Message
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Footer */}
+                    <footer className="py-8 text-white bg-gray-900 dark:bg-black">
+                        <div className="px-4 mx-auto text-center max-w-7xl sm:px-6 lg:px-8">
+                            <p>&copy; 2024 Moch.Adib I'zaz Al Hakim - All rights reserved.</p>
+                        </div>
+                    </footer>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+    </body>
+</html>
